@@ -1,24 +1,102 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+/**
+ * Root Layout
+ *
+ * Provider architecture:
+ * ClerkProvider (authentication)
+ * └── ClerkLoaded (ensures auth is ready)
+ *     └── StatsigProvider (feature flags with user context)
+ *         └── StripeProvider (payments)
+ *             └── QueryClientProvider (data fetching)
+ *                 └── App Navigation
+ */
+
+import { ClerkProvider, ClerkLoaded, useAuth, useUser } from '@clerk/clerk-expo';
+import { StatsigProvider } from '@statsig/expo-bindings';
+import { StripeProvider } from '@stripe/stripe-react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import * as SecureStore from 'expo-secure-store';
+import { ErrorBoundary } from '../components/common/error-boundary';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export const unstable_settings = {
-  anchor: '(tabs)',
+// Clerk token cache
+const tokenCache = {
+  async getToken(key: string) {
+    try {
+      return SecureStore.getItemAsync(key);
+    } catch {
+      return null;
+    }
+  },
+  async saveToken(key: string, value: string) {
+    try {
+      return SecureStore.setItemAsync(key, value);
+    } catch {
+      return;
+    }
+  },
 };
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+// React Query client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 30, // 30 minutes
+      retry: 1,
+    },
+  },
+});
+
+// Get environment variables
+const clerkPublishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
+const stripePublishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!;
+const statsigClientKey = process.env.EXPO_PUBLIC_STATSIG_CLIENT_KEY!;
+
+// Statsig wrapper to ensure user context from Clerk
+function StatsigWrapper({ children }: { children: React.ReactNode }) {
+  const { userId } = useAuth();
+  const { user } = useUser();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <StatsigProvider
+      sdkKey={statsigClientKey}
+      user={{
+        userID: userId || undefined,
+        email: user?.primaryEmailAddress?.emailAddress,
+        custom: {
+          firstName: user?.firstName,
+          lastName: user?.lastName,
+        },
+      }}
+      options={{
+        environment: { tier: __DEV__ ? 'development' : 'production' },
+      }}
+    >
+      {children}
+    </StatsigProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <ErrorBoundary>
+      <ClerkProvider publishableKey={clerkPublishableKey} tokenCache={tokenCache}>
+        <ClerkLoaded>
+          <StatsigWrapper>
+            <StripeProvider publishableKey={stripePublishableKey}>
+              <QueryClientProvider client={queryClient}>
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Screen name="index" />
+                  <Stack.Screen name="sign-in" />
+                  <Stack.Screen name="sign-up" />
+                  <Stack.Screen name="onboarding" />
+                  <Stack.Screen name="(tabs)" />
+                </Stack>
+              </QueryClientProvider>
+            </StripeProvider>
+          </StatsigWrapper>
+        </ClerkLoaded>
+      </ClerkProvider>
+    </ErrorBoundary>
   );
 }
