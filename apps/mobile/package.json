@@ -1,29 +1,19 @@
 {
-  "name": "letsmeet",
+  "name": "@letsmeet/mobile",
   "version": "1.0.0",
+  "main": "expo-router/entry",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
   "scripts": {
-    "dev": "concurrently \"npm:dev:*\"",
-    "dev:api": "npm run dev --workspace=apps/api",
-    "dev:mobile": "npm run start --workspace=apps/mobile",
-    "build": "npm run build --workspaces",
-    "build:api": "npm run build --workspace=apps/api",
-    "build:mobile": "npm run build --workspace=apps/mobile",
-    "start": "npm run start --workspace=apps/mobile",
-    "reset-project": "node ./scripts/reset-project.js",
-    "android": "npm run android --workspace=apps/mobile",
-    "ios": "npm run ios --workspace=apps/mobile",
-    "web": "npm run web --workspace=apps/mobile",
-    "lint": "npm run lint --workspaces"
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "lint": "expo lint"
   },
   "dependencies": {
+    "@letsmeet/shared": "*",
     "@clerk/clerk-expo": "^2.19.23",
     "@expo/vector-icons": "^15.0.3",
-    "@neondatabase/serverless": "^1.0.2",
     "@react-native-async-storage/async-storage": "^2.1.0",
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",
@@ -31,6 +21,7 @@
     "@statsig/expo-bindings": "^3.31.2",
     "@stripe/stripe-react-native": "0.50.3",
     "@tanstack/react-query": "^5.0.0",
+    "axios": "^1.7.9",
     "expo": "~54.0.33",
     "expo-blur": "~14.1.5",
     "expo-constants": "~18.0.13",
@@ -61,10 +52,8 @@
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
-    "concurrently": "^9.1.2",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
-    "tsx": "^4.19.2",
     "typescript": "~5.9.2"
   }
 }
