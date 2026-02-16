@@ -3,6 +3,11 @@
 # dependencies
 node_modules/
 
+# Lock files (keep only bun.lockb)
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
 # Expo
 .expo/
 dist/
