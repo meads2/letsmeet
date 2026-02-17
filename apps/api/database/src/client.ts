@@ -4,10 +4,7 @@
  * Neon Postgres connection setup and configuration
  */
 
-import { neon, neonConfig } from '@neondatabase/serverless';
-
-// Enable fetch for serverless environments
-neonConfig.fetchConnectionCache = true;
+import { neon } from '@neondatabase/serverless';
 
 /**
  * Database configuration

@@ -61,12 +61,17 @@ const redisPlugin: FastifyPluginAsync = async (fastify) => {
     lazyConnect: true,
   });
 
+  // Attach error listener before connecting to prevent unhandled error event crashes
+  redisClient.on('error', (err) => {
+    fastify.log.debug({ err }, 'Redis error (non-fatal)');
+  });
+
   try {
     await redisClient.connect();
     fastify.log.info('Redis connected successfully');
   } catch (error) {
-    fastify.log.error({ error }, 'Failed to connect to Redis');
-    // Continue without Redis - services will handle gracefully
+    fastify.log.warn('Redis unavailable - running without cache (performance may be reduced)');
+    // Continue without Redis - cache operations fail open
   }
 
   // Create utility wrapper

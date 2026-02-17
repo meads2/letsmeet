@@ -8,7 +8,7 @@ import * as dotenv from 'dotenv';
 import { resolve } from 'path';
 
 // Load environment variables FIRST
-dotenv.config({ path: resolve(__dirname, '../../../apps/api/.env') });
+dotenv.config({ path: resolve(__dirname, '../../.env') });
 
 async function testDrizzle() {
   // Import after env is loaded

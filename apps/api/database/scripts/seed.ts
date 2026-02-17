@@ -4,7 +4,7 @@
  * Creates 50 fake users in Clerk + DB with matches and messages for testing.
  * Uses Drizzle ORM for all database operations.
  *
- * Usage: cd packages/database && bun run seed
+ * Usage: cd apps/api/database && bun run seed
  */
 
 import { createClerkClient } from '@clerk/backend';
@@ -13,7 +13,7 @@ import { config } from 'dotenv';
 import { writeFileSync } from 'fs';
 import { resolve } from 'path';
 
-config({ path: resolve(__dirname, '../../../apps/api/.env') });
+config({ path: resolve(__dirname, '../../.env') });
 
 // Import after env is loaded
 const { db, schema } = await import('../src/drizzle');

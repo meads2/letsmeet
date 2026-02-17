@@ -11,7 +11,7 @@ import * as dotenv from 'dotenv';
 import { resolve } from 'path';
 
 // Load environment variables
-dotenv.config({ path: resolve(__dirname, '../../../apps/api/.env') });
+dotenv.config({ path: resolve(__dirname, '../../.env') });
 
 const runMigration = async () => {
   const connectionString = process.env.DATABASE_URL;

@@ -5,7 +5,7 @@
  * Reads from seed-manifest.json if available, otherwise falls back to
  * querying Clerk for users with the seed email pattern.
  *
- * Usage: cd packages/database && bun run cleanup
+ * Usage: cd apps/api/database && bun run cleanup
  */
 
 import { createClerkClient } from '@clerk/backend';
@@ -13,7 +13,7 @@ import { config } from 'dotenv';
 import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 
-config({ path: resolve(__dirname, '../../../apps/api/.env') });
+config({ path: resolve(__dirname, '../../.env') });
 
 const { db, schema } = await import('../src/drizzle');
 const { eq } = await import('drizzle-orm');

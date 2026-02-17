@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "workspaces": [
-    "apps/*",
-    "packages/*"
+    "apps/api",
+    "apps/mobile",
+    "apps/api/database",
+    "apps/api/shared"
   ],
   "scripts": {
     "dev": "sh -c 'cd apps/api && bun --watch src/index.ts & cd apps/mobile && expo start'",

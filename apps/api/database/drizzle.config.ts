@@ -9,7 +9,7 @@ import * as dotenv from 'dotenv';
 import { resolve } from 'path';
 
 // Load environment variables from API .env file
-dotenv.config({ path: resolve(__dirname, '../../apps/api/.env') });
+dotenv.config({ path: resolve(__dirname, '../.env') });
 
 export default {
   schema: './src/schema/index.ts',
