@@ -7,16 +7,22 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "seed": "bun run scripts/seed.ts",
-    "cleanup": "bun run scripts/cleanup.ts"
+    "cleanup": "bun run scripts/cleanup.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "bun run src/migrate.ts",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@letsmeet/shared": "*",
-    "@neondatabase/serverless": "^1.0.2"
+    "@neondatabase/serverless": "^1.0.2",
+    "drizzle-orm": "^0.45.1"
   },
   "devDependencies": {
     "@clerk/backend": "^1.0.0",
     "@faker-js/faker": "^8.4.1",
     "dotenv": "^16.4.0",
+    "drizzle-kit": "^0.31.9",
     "typescript": "~5.9.2"
   }
 }

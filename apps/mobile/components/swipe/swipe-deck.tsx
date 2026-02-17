@@ -5,17 +5,17 @@
  */
 
 import { useRef } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ActivityIndicator } from 'react-native';
 import Swiper from 'react-native-deck-swiper';
 import { ProfileCard } from './profile-card';
 import { ActionButtons } from './action-buttons';
-import type { FeedProfile } from '../../api/database/queries/feed';
+import type { ProfileModel } from '@letsmeet/shared';
 
 interface SwipeDeckProps {
-  profiles: FeedProfile[];
-  onSwipeLeft: (profile: FeedProfile) => void;
-  onSwipeRight: (profile: FeedProfile) => void;
-  onSwipeTop: (profile: FeedProfile) => void;
+  profiles: ProfileModel[];
+  onSwipeLeft: (profile: ProfileModel) => void;
+  onSwipeRight: (profile: ProfileModel) => void;
+  onSwipeTop: (profile: ProfileModel) => void;
   isLoading?: boolean;
 }
 
@@ -30,19 +30,19 @@ export function SwipeDeck({
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View className="flex-1 justify-center items-center">
         <ActivityIndicator size="large" color="#FF6B9D" />
-        <Text style={styles.loadingText}>Loading profiles...</Text>
+        <Text className="mt-4 text-base text-neutral-600">Loading profiles...</Text>
       </View>
     );
   }
 
   if (!profiles || profiles.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyEmoji}>🔍</Text>
-        <Text style={styles.emptyTitle}>No More Profiles</Text>
-        <Text style={styles.emptyText}>
+      <View className="flex-1 justify-center items-center p-10">
+        <Text className="text-8xl mb-6">🔍</Text>
+        <Text className="text-2xl font-bold text-neutral-800 mb-3">No More Profiles</Text>
+        <Text className="text-base text-neutral-600 text-center leading-6">
           You&apos;ve seen everyone nearby!{'\n'}
           Try adjusting your preferences or check back later.
         </Text>
@@ -63,7 +63,7 @@ export function SwipeDeck({
   };
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-neutral-50">
       <Swiper
         ref={swiperRef}
         cards={profiles}
@@ -151,42 +151,3 @@ export function SwipeDeck({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'transparent',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#666',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  emptyEmoji: {
-    fontSize: 80,
-    marginBottom: 24,
-  },
-  emptyTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 12,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-});

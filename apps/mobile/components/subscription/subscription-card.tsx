@@ -4,9 +4,12 @@
  * Displays subscription tier with features and pricing
  */
 
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import type { SubscriptionPlan } from '../../api/payments/subscription-config';
+import type { SubscriptionPlan } from '@letsmeet/shared';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 interface SubscriptionCardProps {
   plan: SubscriptionPlan;
@@ -18,37 +21,43 @@ export function SubscriptionCard({ plan, isCurrentPlan, onSelect }: Subscription
   const isFree = plan.id === 'free';
 
   return (
-    <View
-      style={[
-        styles.card,
-        plan.popular && styles.popularCard,
-        isCurrentPlan && styles.currentCard,
-      ]}
+    <Card
+      variant="elevated"
+      padding="lg"
+      className={[
+        'mx-4 my-2 relative',
+        plan.popular ? 'border-2 border-primary-500' : '',
+        isCurrentPlan ? 'border-2 border-green-500 bg-green-50' : '',
+      ].join(' ')}
     >
       {/* Popular Badge */}
       {plan.popular && (
-        <View style={styles.popularBadge}>
-          <Text style={styles.popularText}>MOST POPULAR</Text>
+        <View className="absolute -top-3 self-center">
+          <Badge variant="warning" size="md">
+            MOST POPULAR
+          </Badge>
         </View>
       )}
 
       {/* Current Plan Badge */}
       {isCurrentPlan && (
-        <View style={styles.currentBadge}>
+        <View className="flex-row items-center gap-1.5 mb-3">
           <Ionicons name="checkmark-circle" size={20} color="#00C853" />
-          <Text style={styles.currentText}>Current Plan</Text>
+          <Text className="text-green-600 text-sm font-bold">Current Plan</Text>
         </View>
       )}
 
       {/* Header */}
-      <Text style={styles.planName}>{plan.name}</Text>
-      <View style={styles.priceContainer}>
-        <Text style={styles.price}>{plan.priceDisplay}</Text>
-        {!isFree && <Text style={styles.interval}>/month</Text>}
+      <Text className="text-3xl font-bold text-neutral-900 mb-2">{plan.name}</Text>
+      <View className="flex-row items-baseline mb-6">
+        <Text className="text-3xl font-bold text-primary-500">{plan.priceDisplay}</Text>
+        {!isFree && (
+          <Text className="text-base text-neutral-500 ml-1">/month</Text>
+        )}
       </View>
 
       {/* Features */}
-      <View style={styles.features}>
+      <View className="gap-3 mb-6">
         {/* Likes */}
         <Feature
           icon="heart"
@@ -108,16 +117,16 @@ export function SubscriptionCard({ plan, isCurrentPlan, onSelect }: Subscription
 
       {/* CTA Button */}
       {!isCurrentPlan && (
-        <TouchableOpacity
-          style={[styles.button, plan.popular && styles.popularButton]}
+        <Button
+          variant={plan.popular ? 'primary' : 'outline'}
+          size="lg"
           onPress={onSelect}
+          className="w-full"
         >
-          <Text style={[styles.buttonText, plan.popular && styles.popularButtonText]}>
-            {isFree ? 'Current Plan' : 'Upgrade Now'}
-          </Text>
-        </TouchableOpacity>
+          {isFree ? 'Current Plan' : 'Upgrade Now'}
+        </Button>
       )}
-    </View>
+    </Card>
   );
 }
 
@@ -131,121 +140,15 @@ function Feature({
   highlighted?: boolean;
 }) {
   return (
-    <View style={styles.feature}>
+    <View className="flex-row items-center gap-3">
       <Ionicons
         name={icon as any}
         size={18}
-        color={highlighted ? '#FF6B9D' : '#666'}
+        color={highlighted ? '#FF6B6B' : '#9ca3af'}
       />
-      <Text style={[styles.featureText, highlighted && styles.featureTextHighlighted]}>
+      <Text className={['flex-1 text-sm', highlighted ? 'text-neutral-900 font-semibold' : 'text-neutral-500'].join(' ')}>
         {text}
       </Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
-    marginHorizontal: 16,
-    marginVertical: 8,
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  popularCard: {
-    borderColor: '#FF6B9D',
-    borderWidth: 3,
-  },
-  currentCard: {
-    borderColor: '#00C853',
-    backgroundColor: '#F0FFF4',
-  },
-  popularBadge: {
-    position: 'absolute',
-    top: -12,
-    alignSelf: 'center',
-    backgroundColor: '#FF6B9D',
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  popularText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  currentBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 12,
-  },
-  currentText: {
-    color: '#00C853',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  planName: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
-  },
-  priceContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    marginBottom: 24,
-  },
-  price: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#FF6B9D',
-  },
-  interval: {
-    fontSize: 16,
-    color: '#666',
-    marginLeft: 4,
-  },
-  features: {
-    gap: 12,
-    marginBottom: 24,
-  },
-  feature: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  featureText: {
-    fontSize: 15,
-    color: '#666',
-    flex: 1,
-  },
-  featureTextHighlighted: {
-    color: '#333',
-    fontWeight: '600',
-  },
-  button: {
-    backgroundColor: '#F5F5F5',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  popularButton: {
-    backgroundColor: '#FF6B9D',
-  },
-  buttonText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#666',
-  },
-  popularButtonText: {
-    color: '#FFFFFF',
-  },
-});

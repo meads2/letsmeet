@@ -5,11 +5,12 @@
  * Redirects to main app if already authenticated
  */
 
-import { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useAuth } from '@clerk/clerk-expo';
-import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
+import { Text, View } from 'react-native';
+import { Button } from '@/components/ui';
 
 export default function LandingPage() {
   const { isSignedIn } = useAuth();
@@ -18,135 +19,57 @@ export default function LandingPage() {
   // Redirect if already signed in
   useEffect(() => {
     if (isSignedIn) {
-      router.replace('/(tabs)/explore');
+      router.replace('/(home)/prospects');
     }
   }, [isSignedIn, router]);
 
   return (
     <LinearGradient
-      colors={['#FF6B9D', '#C06C84', '#6C5B7B']}
-      style={styles.container}
+      colors={['#FFF5F5', '#FFE5E5', '#F5F3F7']}
+      className="flex-1"
     >
-      <View style={styles.content}>
+      <View className="flex-1 justify-center items-center p-6">
         {/* Logo/Icon */}
-        <View style={styles.logoContainer}>
-          <Text style={styles.logo}>💕</Text>
+        <View className="w-32 h-32 rounded-full bg-white/20 justify-center items-center mb-6">
+          <Text className="text-6xl">💕</Text>
         </View>
 
         {/* App Name */}
-        <Text style={styles.title}>LetsMeet</Text>
+        <Text className="text-5xl font-bold text-primary-600 mb-3">
+          LetsMeet
+        </Text>
 
         {/* Tagline */}
-        <Text style={styles.tagline}>
+        <Text className="text-lg text-neutral-700 text-center mb-12 opacity-90">
           Find meaningful connections{'\n'}through authentic conversations
         </Text>
 
         {/* CTA Buttons */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={() => router.push('/sign-up')}
+        <View className="w-full gap-4 mb-12">
+          <Button
+            size="lg"
+            onPress={() => router.push('/(auth)/sign-up')}
+            className="shadow-md"
           >
-            <Text style={styles.primaryButtonText}>Create Account</Text>
-          </TouchableOpacity>
+            Create Account
+          </Button>
 
-          <TouchableOpacity
-            style={styles.secondaryButton}
-            onPress={() => router.push('/sign-in')}
+          <Button
+            variant="outline"
+            size="lg"
+            onPress={() => router.push('/(auth)/sign-in')}
           >
-            <Text style={styles.secondaryButtonText}>Sign In</Text>
-          </TouchableOpacity>
+            Sign In
+          </Button>
         </View>
 
         {/* Features */}
-        <View style={styles.features}>
-          <Text style={styles.feature}>✓ Swipe to connect</Text>
-          <Text style={styles.feature}>✓ Match with like-minded people</Text>
-          <Text style={styles.feature}>✓ Start meaningful conversations</Text>
+        <View className="items-center gap-2">
+          <Text className="text-base text-neutral-700 opacity-80">✓ Swipe to connect</Text>
+          <Text className="text-base text-neutral-700 opacity-80">✓ Match with like-minded people</Text>
+          <Text className="text-base text-neutral-700 opacity-80">✓ Start meaningful conversations</Text>
         </View>
       </View>
     </LinearGradient>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  logoContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  logo: {
-    fontSize: 60,
-  },
-  title: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 12,
-  },
-  tagline: {
-    fontSize: 18,
-    color: '#FFFFFF',
-    textAlign: 'center',
-    marginBottom: 48,
-    opacity: 0.9,
-  },
-  buttonContainer: {
-    width: '100%',
-    gap: 16,
-    marginBottom: 48,
-  },
-  primaryButton: {
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  primaryButtonText: {
-    color: '#FF6B9D',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  secondaryButton: {
-    backgroundColor: 'transparent',
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-    alignItems: 'center',
-  },
-  secondaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  features: {
-    alignItems: 'center',
-    gap: 8,
-  },
-  feature: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    opacity: 0.8,
-  },
-});

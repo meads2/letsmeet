@@ -9,7 +9,6 @@ import {
   View,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -18,7 +17,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { MessageBubble } from './message-bubble';
 import { useMessages, useSendMessage, useMarkAsRead } from '../../hooks/use-messages';
-import type { MessageWithSender } from '../../api/database/models/message';
+import type { MessageWithSender } from '@letsmeet/shared';
 
 interface ChatInterfaceProps {
   matchId: string;
@@ -77,15 +76,15 @@ export function ChatInterface({ matchId, receiverId }: ChatInterfaceProps) {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FF6B9D" />
+      <View className="flex-1 justify-center items-center bg-neutral-50">
+        <ActivityIndicator size="large" color="#FF6B6B" />
       </View>
     );
   }
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      className="flex-1 bg-neutral-50"
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
@@ -95,18 +94,19 @@ export function ChatInterface({ matchId, receiverId }: ChatInterfaceProps) {
         data={messages || []}
         renderItem={renderMessage}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.messageList}
+        contentContainerStyle={{ paddingVertical: 16 }}
         onContentSizeChange={() => {
           flatListRef.current?.scrollToEnd({ animated: false });
         }}
       />
 
       {/* Input Area */}
-      <View style={styles.inputContainer}>
-        <View style={styles.inputWrapper}>
+      <View className="bg-white border-t border-neutral-200 px-4 py-3">
+        <View className="flex-row items-end gap-2">
           <TextInput
-            style={styles.input}
+            className="flex-1 bg-neutral-100 rounded-2xl px-4 py-2.5 text-base text-neutral-900 max-h-24"
             placeholder="Type a message..."
+            placeholderTextColor="#A3A3A3"
             value={messageText}
             onChangeText={setMessageText}
             multiline
@@ -114,10 +114,9 @@ export function ChatInterface({ matchId, receiverId }: ChatInterfaceProps) {
           />
 
           <TouchableOpacity
-            style={[
-              styles.sendButton,
-              !messageText.trim() && styles.sendButtonDisabled,
-            ]}
+            className={`w-12 h-12 rounded-full items-center justify-center ${
+              !messageText.trim() ? 'bg-neutral-300' : 'bg-primary-500'
+            }`}
             onPress={handleSend}
             disabled={!messageText.trim() || sendMutation.isPending}
           >
@@ -132,50 +131,3 @@ export function ChatInterface({ matchId, receiverId }: ChatInterfaceProps) {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  messageList: {
-    paddingVertical: 16,
-  },
-  inputContainer: {
-    borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 8,
-  },
-  input: {
-    flex: 1,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    fontSize: 16,
-    maxHeight: 100,
-  },
-  sendButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#FF6B9D',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sendButtonDisabled: {
-    backgroundColor: '#CCC',
-  },
-});

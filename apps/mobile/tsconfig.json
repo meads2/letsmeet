@@ -1,5 +1,8 @@
 {
-  "extends": ["../../tsconfig.base.json", "expo/tsconfig.base"],
+  "extends": [
+    "../../tsconfig.base.json",
+    "expo/tsconfig.base"
+  ],
   "compilerOptions": {
     "composite": false,
     "strict": true,
@@ -13,6 +16,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts"
+    "expo-env.d.ts",
+    "nativewind-env.d.ts"
   ]
 }

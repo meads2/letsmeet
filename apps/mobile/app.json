@@ -56,8 +56,7 @@
       "router": {},
       "eas": {
         "projectId": "24d84328-1bec-40d8-ad87-2f11779887b7"
-      },
-      "apiUrl": "http://localhost:3000/api/v1"
+      }
     },
     "owner": "matteads2"
   }

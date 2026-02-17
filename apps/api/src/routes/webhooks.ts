@@ -2,45 +2,37 @@
  * Webhook Routes
  *
  * Endpoints for handling Stripe and Clerk webhooks
+ * REFACTORED: Now uses WebhookService for business logic
  */
 
 import { FastifyPluginAsync } from 'fastify';
 import Stripe from 'stripe';
 import { Webhook as ClerkWebhook } from 'svix';
-import { updatePremiumStatus, deleteProfile, createProfile } from '@letsmeet/database';
 import { env } from '../config/env';
+import { ValidationError } from '../errors';
 
 const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
+  apiVersion: '2024-12-18.acacia',
 });
 
 const webhooksRoute: FastifyPluginAsync = async (fastify) => {
+  const { webhookService } = fastify.services;
+
   /**
-   * POST /api/v1/webhooks/stripe
+   * POST /webhooks/stripe
    * Handle Stripe webhook events
+   * Verifies signature and delegates to WebhookService
    */
   fastify.post('/stripe', async (request, reply) => {
     const signature = request.headers['stripe-signature'];
 
     if (!signature) {
-      return reply.code(400).send({
-        success: false,
-        error: {
-          message: 'Missing stripe-signature header',
-          code: 'MISSING_SIGNATURE',
-        },
-      });
+      throw new ValidationError('Missing stripe-signature header');
     }
 
     if (!env.STRIPE_WEBHOOK_SECRET) {
       fastify.log.error('STRIPE_WEBHOOK_SECRET not configured');
-      return reply.code(500).send({
-        success: false,
-        error: {
-          message: 'Webhook secret not configured',
-          code: 'CONFIG_ERROR',
-        },
-      });
+      throw new Error('Webhook secret not configured');
     }
 
     let event: Stripe.Event;
@@ -54,73 +46,30 @@ const webhooksRoute: FastifyPluginAsync = async (fastify) => {
       );
     } catch (err) {
       fastify.log.warn({ error: err }, 'Invalid Stripe webhook signature');
-      return reply.code(400).send({
-        success: false,
-        error: {
-          message: 'Invalid signature',
-          code: 'INVALID_SIGNATURE',
-        },
-      });
+      throw new ValidationError('Invalid signature');
     }
 
-    // Handle the event
+    // Delegate to service for processing
     try {
-      switch (event.type) {
-        case 'checkout.session.completed': {
-          const session = event.data.object as Stripe.Checkout.Session;
-          const userId = session.metadata?.userId;
-
-          if (userId) {
-            // Activate premium subscription
-            await updatePremiumStatus(userId, true);
-            fastify.log.info({ userId }, 'Premium subscription activated');
-          }
-          break;
-        }
-
-        case 'customer.subscription.deleted': {
-          const subscription = event.data.object as Stripe.Subscription;
-          const userId = subscription.metadata?.userId;
-
-          if (userId) {
-            // Deactivate premium subscription
-            await updatePremiumStatus(userId, false);
-            fastify.log.info({ userId }, 'Premium subscription cancelled');
-          }
-          break;
-        }
-
-        default:
-          fastify.log.info({ type: event.type }, 'Unhandled Stripe event type');
-      }
+      await webhookService.processStripeEvent(event);
+      fastify.log.info({ type: event.type }, 'Stripe webhook processed');
 
       return reply.send({ success: true, received: true });
     } catch (error) {
       fastify.log.error({ error, event: event.type }, 'Error processing Stripe webhook');
-      return reply.code(500).send({
-        success: false,
-        error: {
-          message: 'Error processing webhook',
-          code: 'PROCESSING_ERROR',
-        },
-      });
+      throw error;
     }
   });
 
   /**
-   * POST /api/v1/webhooks/clerk
+   * POST /webhooks/clerk
    * Handle Clerk webhook events
+   * Verifies signature and delegates to WebhookService
    */
   fastify.post('/clerk', async (request, reply) => {
     if (!env.CLERK_WEBHOOK_SECRET) {
       fastify.log.error('CLERK_WEBHOOK_SECRET not configured');
-      return reply.code(500).send({
-        success: false,
-        error: {
-          message: 'Webhook secret not configured',
-          code: 'CONFIG_ERROR',
-        },
-      });
+      throw new Error('Webhook secret not configured');
     }
 
     const svixId = request.headers['svix-id'] as string;
@@ -128,13 +77,7 @@ const webhooksRoute: FastifyPluginAsync = async (fastify) => {
     const svixSignature = request.headers['svix-signature'] as string;
 
     if (!svixId || !svixTimestamp || !svixSignature) {
-      return reply.code(400).send({
-        success: false,
-        error: {
-          message: 'Missing Svix headers',
-          code: 'MISSING_HEADERS',
-        },
-      });
+      throw new ValidationError('Missing Svix headers');
     }
 
     let event: any;
@@ -149,49 +92,18 @@ const webhooksRoute: FastifyPluginAsync = async (fastify) => {
       }) as any;
     } catch (err) {
       fastify.log.warn({ error: err }, 'Invalid Clerk webhook signature');
-      return reply.code(400).send({
-        success: false,
-        error: {
-          message: 'Invalid signature',
-          code: 'INVALID_SIGNATURE',
-        },
-      });
+      throw new ValidationError('Invalid signature');
     }
 
-    // Handle the event
+    // Delegate to service for processing
     try {
-      const eventType = event.type;
-
-      switch (eventType) {
-        case 'user.created': {
-          const userId = event.data.id;
-          fastify.log.info({ userId }, 'New user created in Clerk');
-          // Profile will be created when user completes onboarding
-          break;
-        }
-
-        case 'user.deleted': {
-          const userId = event.data.id;
-          // Delete user's profile
-          await deleteProfile(userId);
-          fastify.log.info({ userId }, 'User deleted from Clerk, profile removed');
-          break;
-        }
-
-        default:
-          fastify.log.info({ type: eventType }, 'Unhandled Clerk event type');
-      }
+      await webhookService.processClerkEvent(event);
+      fastify.log.info({ type: event.type }, 'Clerk webhook processed');
 
       return reply.send({ success: true, received: true });
     } catch (error) {
       fastify.log.error({ error, event: event.type }, 'Error processing Clerk webhook');
-      return reply.code(500).send({
-        success: false,
-        error: {
-          message: 'Error processing webhook',
-          code: 'PROCESSING_ERROR',
-        },
-      });
+      throw error;
     }
   });
 };

@@ -5,7 +5,7 @@
  */
 
 import React, { Component, ReactNode } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface Props {
@@ -43,14 +43,19 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <View style={styles.container}>
-          <Ionicons name="warning" size={64} color="#FF6B9D" />
-          <Text style={styles.title}>Oops! Something went wrong</Text>
-          <Text style={styles.message}>
+        <View className="flex-1 justify-center items-center p-6 bg-white">
+          <Ionicons name="warning" size={64} color="#FF6B6B" />
+          <Text className="text-2xl font-bold text-neutral-800 mt-6 mb-3 text-center">
+            Oops! Something went wrong
+          </Text>
+          <Text className="text-base text-neutral-500 text-center mb-8 leading-6">
             {this.state.error?.message || 'An unexpected error occurred'}
           </Text>
-          <TouchableOpacity style={styles.button} onPress={this.handleReset}>
-            <Text style={styles.buttonText}>Try Again</Text>
+          <TouchableOpacity
+            className="bg-primary-500 py-3 px-8 rounded-xl"
+            onPress={this.handleReset}
+          >
+            <Text className="text-white text-base font-bold">Try Again</Text>
           </TouchableOpacity>
         </View>
       );
@@ -60,38 +65,3 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-    backgroundColor: '#FFFFFF',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginTop: 24,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  message: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: 32,
-    lineHeight: 24,
-  },
-  button: {
-    backgroundColor: '#FF6B9D',
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 12,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-});

@@ -4,8 +4,8 @@
  * Displays individual chat messages
  */
 
-import { View, Text, StyleSheet, Image } from 'react-native';
-import type { MessageWithSender } from '../../api/database/models/message';
+import { View, Text, Image } from 'react-native';
+import type { MessageWithSender } from '@letsmeet/shared';
 import { useAuth } from '@clerk/clerk-expo';
 
 interface MessageBubbleProps {
@@ -28,37 +28,37 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 
   return (
     <View
-      style={[
-        styles.container,
-        isOwnMessage ? styles.ownMessageContainer : styles.otherMessageContainer,
-      ]}
+      className={`flex-row my-1 px-3 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
     >
       {/* Sender's avatar (only for other person's messages) */}
       {!isOwnMessage && message.sender.photos?.[0] && (
         <Image
           source={{ uri: message.sender.photos[0] }}
-          style={styles.avatar}
+          className="w-8 h-8 rounded-full mr-2 bg-neutral-100"
         />
       )}
 
-      <View style={styles.messageWrapper}>
+      <View className="max-w-[75%]">
         {/* Sender name (only for other person's messages) */}
         {!isOwnMessage && (
-          <Text style={styles.senderName}>{message.sender.displayName}</Text>
+          <Text className="text-xs text-neutral-500 mb-1 ml-3">
+            {message.sender.displayName}
+          </Text>
         )}
 
         {/* Message bubble */}
         <View
-          style={[
-            styles.bubble,
-            isOwnMessage ? styles.ownBubble : styles.otherBubble,
-          ]}
+          className={`rounded-2xl px-4 py-3 shadow-sm ${
+            isOwnMessage
+              ? 'bg-primary-500 rounded-br-sm'
+              : 'bg-neutral-100 rounded-bl-sm'
+          }`}
         >
           {/* Image message */}
           {message.type === 'image' && message.mediaUrl && (
             <Image
               source={{ uri: message.mediaUrl }}
-              style={styles.messageImage}
+              className="w-48 h-48 rounded-xl"
               resizeMode="cover"
             />
           )}
@@ -66,10 +66,9 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           {/* Text message */}
           {message.type === 'text' && (
             <Text
-              style={[
-                styles.messageText,
-                isOwnMessage ? styles.ownMessageText : styles.otherMessageText,
-              ]}
+              className={`text-base leading-snug ${
+                isOwnMessage ? 'text-white' : 'text-neutral-900'
+              }`}
             >
               {message.content}
             </Text>
@@ -79,7 +78,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           {message.type === 'gif' && message.mediaUrl && (
             <Image
               source={{ uri: message.mediaUrl }}
-              style={styles.messageGif}
+              className="w-36 h-36 rounded-xl"
               resizeMode="cover"
             />
           )}
@@ -87,10 +86,9 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 
         {/* Timestamp */}
         <Text
-          style={[
-            styles.timestamp,
-            isOwnMessage ? styles.ownTimestamp : styles.otherTimestamp,
-          ]}
+          className={`text-xs text-neutral-400 mt-1 ${
+            isOwnMessage ? 'text-right mr-3' : 'text-left ml-3'
+          }`}
         >
           {formatTime(message.createdAt)}
           {isOwnMessage && message.readAt && ' • Read'}
@@ -99,80 +97,3 @@ export function MessageBubble({ message }: MessageBubbleProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    marginVertical: 4,
-    paddingHorizontal: 12,
-  },
-  ownMessageContainer: {
-    justifyContent: 'flex-end',
-  },
-  otherMessageContainer: {
-    justifyContent: 'flex-start',
-  },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    marginRight: 8,
-    backgroundColor: '#F0F0F0',
-  },
-  messageWrapper: {
-    maxWidth: '75%',
-  },
-  senderName: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 4,
-    marginLeft: 12,
-  },
-  bubble: {
-    borderRadius: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-  },
-  ownBubble: {
-    backgroundColor: '#FF6B9D',
-    borderBottomRightRadius: 4,
-  },
-  otherBubble: {
-    backgroundColor: '#F0F0F0',
-    borderBottomLeftRadius: 4,
-  },
-  messageText: {
-    fontSize: 16,
-    lineHeight: 22,
-  },
-  ownMessageText: {
-    color: '#FFFFFF',
-  },
-  otherMessageText: {
-    color: '#333',
-  },
-  messageImage: {
-    width: 200,
-    height: 200,
-    borderRadius: 12,
-  },
-  messageGif: {
-    width: 150,
-    height: 150,
-    borderRadius: 12,
-  },
-  timestamp: {
-    fontSize: 11,
-    marginTop: 4,
-  },
-  ownTimestamp: {
-    color: '#999',
-    textAlign: 'right',
-    marginRight: 12,
-  },
-  otherTimestamp: {
-    color: '#999',
-    textAlign: 'left',
-    marginLeft: 12,
-  },
-});

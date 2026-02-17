@@ -4,8 +4,9 @@
  * Consistent empty state UI across the app
  */
 
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Button } from '@/components/ui/button';
 
 interface EmptyStateProps {
   icon?: string;
@@ -25,57 +26,24 @@ export function EmptyState({
   onAction,
 }: EmptyStateProps) {
   return (
-    <View style={styles.container}>
-      {emoji && <Text style={styles.emoji}>{emoji}</Text>}
-      {icon && !emoji && (
-        <Ionicons name={icon as any} size={80} color="#E0E0E0" />
+    <View className="flex-1 items-center justify-center p-8">
+      {emoji && (
+        <Text className="text-[80px] mb-6">{emoji}</Text>
       )}
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.description}>{description}</Text>
+      {icon && !emoji && (
+        <Ionicons name={icon as any} size={80} color="#e5e7eb" />
+      )}
+      <Text className="text-xl font-bold text-neutral-700 mt-6 mb-3 text-center">
+        {title}
+      </Text>
+      <Text className="text-base text-neutral-500 text-center leading-6 mb-8">
+        {description}
+      </Text>
       {actionText && onAction && (
-        <TouchableOpacity style={styles.button} onPress={onAction}>
-          <Text style={styles.buttonText}>{actionText}</Text>
-        </TouchableOpacity>
+        <Button variant="primary" size="md" onPress={onAction}>
+          {actionText}
+        </Button>
       )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  emoji: {
-    fontSize: 80,
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 12,
-    marginTop: 24,
-    textAlign: 'center',
-  },
-  description: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 32,
-  },
-  button: {
-    backgroundColor: '#FF6B9D',
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 12,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-});

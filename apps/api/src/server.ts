@@ -8,11 +8,16 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import multipart from '@fastify/multipart';
+import compress from '@fastify/compress';
 import { corsOptions } from './config/cors';
 import { env } from './config/env';
 import authPlugin from './plugins/auth';
 import errorHandlerPlugin from './plugins/error-handler';
+import redisPlugin from './plugins/redis';
+import securityPlugin from './plugins/security';
+import timingPlugin from './plugins/timing';
 import { registerRoutes } from './routes';
+import { createServices } from './services';
 
 export async function createServer() {
   const fastify = Fastify({
@@ -34,6 +39,16 @@ export async function createServer() {
     requestIdHeader: 'x-request-id',
   });
 
+  // Register compression (before routes)
+  await fastify.register(compress, {
+    global: true,
+    threshold: 1024, // Only compress responses larger than 1KB
+    encodings: ['gzip', 'deflate'],
+  });
+
+  // Register security headers
+  await fastify.register(securityPlugin);
+
   // Register CORS
   await fastify.register(cors, corsOptions);
 
@@ -54,8 +69,14 @@ export async function createServer() {
   });
 
   // Register custom plugins
+  await fastify.register(redisPlugin);
+  await fastify.register(timingPlugin);
   await fastify.register(authPlugin);
   await fastify.register(errorHandlerPlugin);
+
+  // Initialize services with Redis client
+  const services = createServices(fastify.redis);
+  fastify.decorate('services', services);
 
   // Health check endpoint
   fastify.get('/health', async () => {

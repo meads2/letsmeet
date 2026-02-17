@@ -4,13 +4,14 @@
  * HTTP client for communicating with the Fastify backend
  */
 
+import React from 'react';
 import axios, { type AxiosInstance, type AxiosError } from 'axios';
 import { useAuth } from '@clerk/clerk-expo';
 import Constants from 'expo-constants';
 import type { API } from '@letsmeet/shared';
 
 // Get API URL from environment
-const API_BASE_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:3000/api/v1';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
 
 /**
  * Create axios instance
@@ -168,5 +169,3 @@ export function useApiClient() {
 
   return api;
 }
-
-import React from 'react';

@@ -8,7 +8,6 @@ import { useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   Image,
   ActivityIndicator,
@@ -17,7 +16,7 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
-import { uploadImage } from '../../api/utils/image-upload';
+import { uploadImage } from '../../lib/image-upload';
 
 interface PhotoUploaderProps {
   photos: string[];
@@ -123,24 +122,27 @@ export function PhotoUploader({ photos, onChange, maxPhotos = 6 }: PhotoUploader
   };
 
   return (
-    <View style={styles.container}>
+    <View className="my-4">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ gap: 12 }}
       >
         {photos.map((photo, index) => (
-          <View key={index} style={styles.photoContainer}>
-            <Image source={{ uri: photo }} style={styles.photo} />
+          <View key={index} className="relative">
+            <Image
+              source={{ uri: photo }}
+              className="w-[120px] h-40 rounded-xl bg-neutral-100"
+            />
             <TouchableOpacity
-              style={styles.removeButton}
+              className="absolute top-2 right-2 bg-white/90 rounded-full"
               onPress={() => removePhoto(index)}
             >
               <Ionicons name="close-circle" size={28} color="#FF3B30" />
             </TouchableOpacity>
             {index === 0 && (
-              <View style={styles.primaryBadge}>
-                <Text style={styles.primaryText}>Primary</Text>
+              <View className="absolute bottom-2 left-2 bg-primary-500 px-2 py-1 rounded">
+                <Text className="text-white text-xs font-bold">Primary</Text>
               </View>
             )}
           </View>
@@ -148,87 +150,25 @@ export function PhotoUploader({ photos, onChange, maxPhotos = 6 }: PhotoUploader
 
         {photos.length < maxPhotos && (
           <TouchableOpacity
-            style={styles.addButton}
+            className="w-[120px] h-40 rounded-xl border-2 border-dashed border-primary-500 justify-center items-center bg-white"
             onPress={showAddOptions}
             disabled={uploading}
           >
             {uploading ? (
-              <ActivityIndicator color="#FF6B9D" />
+              <ActivityIndicator color="#FF6B6B" />
             ) : (
               <>
-                <Ionicons name="add-circle-outline" size={48} color="#FF6B9D" />
-                <Text style={styles.addText}>Add Photo</Text>
+                <Ionicons name="add-circle-outline" size={48} color="#FF6B6B" />
+                <Text className="text-primary-500 text-sm font-semibold mt-2">Add Photo</Text>
               </>
             )}
           </TouchableOpacity>
         )}
       </ScrollView>
 
-      <Text style={styles.hint}>
+      <Text className="text-sm text-neutral-500 mt-3 text-center">
         {photos.length} / {maxPhotos} photos • First photo is your primary photo
       </Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginVertical: 16,
-  },
-  scrollContent: {
-    gap: 12,
-  },
-  photoContainer: {
-    position: 'relative',
-  },
-  photo: {
-    width: 120,
-    height: 160,
-    borderRadius: 12,
-    backgroundColor: '#F0F0F0',
-  },
-  removeButton: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 14,
-  },
-  primaryBadge: {
-    position: 'absolute',
-    bottom: 8,
-    left: 8,
-    backgroundColor: '#FF6B9D',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  primaryText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  addButton: {
-    width: 120,
-    height: 160,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#FF6B9D',
-    borderStyle: 'dashed',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FFF',
-  },
-  addText: {
-    color: '#FF6B9D',
-    fontSize: 14,
-    fontWeight: '600',
-    marginTop: 8,
-  },
-  hint: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 12,
-    textAlign: 'center',
-  },
-});

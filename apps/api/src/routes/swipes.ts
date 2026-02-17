@@ -2,63 +2,35 @@
  * Swipe Routes
  *
  * Endpoints for swiping and match detection
+ * REFACTORED: Now uses SwipeService with limit enforcement
  */
 
 import { FastifyPluginAsync } from 'fastify';
-import { createSwipeSchema, getDailyLikesLimit } from '@letsmeet/shared';
-import {
-  createSwipe,
-  getTodaySwipeCount,
-  getProfileByUserId,
-} from '@letsmeet/database';
+import { validateBody, validateQuery } from '../middleware/validation';
+import { createSwipeBodySchema, swipeCountQuerySchema } from '../validators';
+import type { CreateSwipeInput } from '@letsmeet/shared';
 
 const swipesRoute: FastifyPluginAsync = async (fastify) => {
+  const { swipeService } = fastify.services;
+
   /**
    * POST /api/v1/swipes
    * Create a swipe action (returns match result)
+   * Enforces daily limits for free users
    */
   fastify.post('/', {
     onRequest: [fastify.authenticate],
+    preHandler: [validateBody(createSwipeBodySchema)],
   }, async (request, reply) => {
     const userId = request.userId!;
+    const { targetUserId, action } = request.body as { targetUserId: string; action: 'like' | 'pass' };
 
-    // Validate request body
-    const validated = createSwipeSchema.parse({
-      ...(request.body as object),
-      userId, // Override with authenticated user ID
+    const result = await swipeService.createSwipeAction({
+      userId,
+      targetUserId,
+      action,
+      swipedAt: new Date(),
     });
-
-    // Get user's profile to check premium status
-    const profile = await getProfileByUserId(userId);
-    if (!profile) {
-      return reply.code(404).send({
-        success: false,
-        error: {
-          message: 'Profile not found',
-          code: 'PROFILE_NOT_FOUND',
-        },
-      });
-    }
-
-    // Check daily swipe limit for non-premium users
-    if (!profile.isPremium) {
-      const todayCount = await getTodaySwipeCount(userId);
-      const tier = profile.isPremium ? 'premium' : 'free';
-      const limit = getDailyLikesLimit(tier);
-
-      if (typeof limit === 'number' && todayCount >= limit) {
-        return reply.code(429).send({
-          success: false,
-          error: {
-            message: `Daily swipe limit reached (${limit})`,
-            code: 'LIMIT_REACHED',
-          },
-        });
-      }
-    }
-
-    // Create swipe and check for match
-    const result = await createSwipe(validated);
 
     return reply.send({
       success: true,
@@ -68,24 +40,19 @@ const swipesRoute: FastifyPluginAsync = async (fastify) => {
 
   /**
    * GET /api/v1/swipes/count
-   * Get today's swipe count
+   * Get today's swipe count and limit
    */
   fastify.get('/count', {
     onRequest: [fastify.authenticate],
+    preHandler: [validateQuery(swipeCountQuerySchema)],
   }, async (request, reply) => {
     const userId = request.userId!;
 
-    const profile = await getProfileByUserId(userId);
-    const tier = profile?.isPremium ? 'premium' : 'free';
-    const limit = getDailyLikesLimit(tier);
-    const count = await getTodaySwipeCount(userId);
+    const stats = await swipeService.getSwipeStats(userId);
 
     return reply.send({
       success: true,
-      data: {
-        count,
-        limit,
-      },
+      data: stats,
     });
   });
 };

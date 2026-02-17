@@ -6,53 +6,33 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@clerk/clerk-expo';
-import { getProfileByUserId } from '../api/database/queries/profiles';
+import { useProfile } from './use-profile';
 import {
   getFeaturesForTier,
   hasFeature as checkFeature,
   getDailyLikesLimit as getLikesLimit,
   type SubscriptionTier,
   type SubscriptionFeatures,
-} from '../api/payments/subscription-config';
+} from '@letsmeet/shared';
 
 /**
  * Get user's subscription tier and features
  */
 export function useSubscription() {
-  const { userId } = useAuth();
+  const { data: profile, isLoading } = useProfile();
 
-  const query = useQuery({
-    queryKey: ['subscription', userId],
-    queryFn: async () => {
-      if (!userId) return null;
-
-      const profile = await getProfileByUserId(userId);
-      if (!profile) return null;
-
-      // Determine tier based on profile's premium status
-      // In production, you'd check the actual subscription tier from Stripe
-      const tier: SubscriptionTier = profile.isPremium ? 'premium' : 'free';
-
-      return {
-        tier,
-        features: getFeaturesForTier(tier),
-        isPremium: profile.isPremium,
-      };
-    },
-    enabled: !!userId,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
-
-  const tier = query.data?.tier || 'free';
-  const features = query.data?.features || getFeaturesForTier('free');
-  const isPremium = query.data?.isPremium || false;
+  // Determine tier based on profile's premium status
+  // In production, you'd check the actual subscription tier from Stripe
+  const tier: SubscriptionTier = profile?.isPremium ? 'premium' : 'free';
+  const features = getFeaturesForTier(tier);
+  const isPremium = profile?.isPremium || false;
 
   return {
     tier,
     features,
     isPremium,
-    isLoading: query.isLoading,
-    refetch: query.refetch,
+    isLoading,
+    refetch: () => {}, // Profile refetch is handled by useProfile hook
   };
 }
 

@@ -36,12 +36,11 @@ const AnimatedOrb = ({
       withTiming(1, {
         duration,
         easing: Easing.inOut(Easing.quad),
-        delay,
       }),
       -1,
       true,
     );
-  }, [delay, duration, progress]);
+  }, [duration, progress]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -55,8 +54,8 @@ const AnimatedOrb = ({
   return (
     <Animated.View
       pointerEvents="none"
+      className="absolute overflow-hidden"
       style={[
-        styles.orb,
         { width: size, height: size, borderRadius: size / 2 },
         animatedStyle,
       ]}
@@ -74,49 +73,41 @@ const AnimatedOrb = ({
 
 export function AuroraBackground() {
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    <View className="absolute inset-0" pointerEvents="none">
       <LinearGradient
-        colors={['#010205', '#020617', '#031227']}
+        colors={['#212529', '#343A40', '#495057']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
 
+      {/* Warm coral orb */}
       <AnimatedOrb
         size={320}
-        colors={['rgba(37, 99, 235, 0.65)', 'rgba(147, 197, 253, 0.45)']}
+        colors={['rgba(255, 107, 107, 0.4)', 'rgba(255, 204, 204, 0.3)']}
         initialX={-110}
         initialY={-60}
       />
+      {/* Soft purple orb */}
       <AnimatedOrb
         size={260}
-        colors={['rgba(14, 165, 233, 0.55)', 'rgba(59, 130, 246, 0.6)']}
+        colors={['rgba(155, 126, 189, 0.35)', 'rgba(195, 183, 208, 0.4)']}
         initialX={140}
         initialY={-140}
         delay={500}
         duration={8200}
       />
+      {/* Warm yellow orb */}
       <AnimatedOrb
         size={220}
-        colors={['rgba(2, 132, 199, 0.5)', 'rgba(125, 211, 252, 0.55)']}
+        colors={['rgba(255, 217, 61, 0.3)', 'rgba(255, 249, 194, 0.35)']}
         initialX={-20}
         initialY={280}
         delay={1000}
         duration={9000}
       />
 
-      <View style={styles.noise} />
+      <View className="absolute inset-0 bg-neutral-900/40" />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  orb: {
-    position: 'absolute',
-    overflow: 'hidden',
-  },
-  noise: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(1, 3, 10, 0.4)',
-  },
-});

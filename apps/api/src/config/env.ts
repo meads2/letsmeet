@@ -12,6 +12,7 @@ const envSchema = z.object({
   HOST: z.string().default('0.0.0.0'),
 
   DATABASE_URL: z.string().min(1),
+  REDIS_URL: z.string().url().default('redis://localhost:6379'),
 
   CLERK_SECRET_KEY: z.string().min(1),
   CLERK_WEBHOOK_SECRET: z.string().optional(),

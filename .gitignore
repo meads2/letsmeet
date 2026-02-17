@@ -2,7 +2,7 @@
 
 # dependencies
 node_modules/
-
+.playwright-cli/
 # Lock files (keep only bun.lockb)
 package-lock.json
 pnpm-lock.yaml

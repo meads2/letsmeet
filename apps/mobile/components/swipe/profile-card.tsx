@@ -4,48 +4,55 @@
  * Displays profile information in swipeable card format
  */
 
-import { View, Text, StyleSheet, Image, ScrollView, Dimensions } from 'react-native';
+import { View, Text, Image, ScrollView, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import type { FeedProfile } from '../../api/database/queries/feed';
+import type { ProfileModel } from '@letsmeet/shared';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CARD_HEIGHT = SCREEN_HEIGHT * 0.7;
 
 interface ProfileCardProps {
-  profile: FeedProfile;
+  profile: ProfileModel;
 }
 
 export function ProfileCard({ profile }: ProfileCardProps) {
   const primaryPhoto = profile.photos[0];
   const age = profile.age;
-  const distance = profile.distance ? `${profile.distance}km away` : null;
+  // Optional fields from feed that may not be on base ProfileModel
+  const distance = (profile as any).distance ? `${(profile as any).distance}km away` : null;
 
   return (
-    <View style={styles.card}>
-      {/* Photo */}
+    <View
+      className="overflow-hidden rounded-3xl bg-white shadow-lg"
+      style={{ width: SCREEN_WIDTH - 40, height: CARD_HEIGHT }}
+    >
+      {/* Photo - full bleed */}
       <Image
         source={{ uri: primaryPhoto }}
-        style={styles.photo}
+        style={{ width: '100%', height: '100%', position: 'absolute' }}
         resizeMode="cover"
       />
 
       {/* Gradient overlay */}
       <LinearGradient
         colors={['transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.8)']}
-        style={styles.gradient}
+        style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '50%' }}
       />
 
-      {/* Content */}
-      <View style={styles.content}>
+      {/* Content overlay */}
+      <View className="absolute bottom-0 left-0 right-0 p-5">
         {/* Name and Age */}
-        <View style={styles.header}>
-          <Text style={styles.name}>
+        <View className="flex-row items-center mb-2">
+          <Text className="text-3xl font-bold text-white flex-1">
             {profile.displayName}, {age}
           </Text>
           {profile.relationshipGoal && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>
+            <View
+              className="px-3 py-1.5 rounded-full"
+              style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+            >
+              <Text className="text-xl">
                 {getGoalIcon(profile.relationshipGoal)}
               </Text>
             </View>
@@ -54,9 +61,9 @@ export function ProfileCard({ profile }: ProfileCardProps) {
 
         {/* Location */}
         {(profile.city || distance) && (
-          <View style={styles.locationContainer}>
+          <View className="flex-row items-center mb-3">
             <Ionicons name="location" size={16} color="#FFFFFF" />
-            <Text style={styles.location}>
+            <Text className="text-base text-white ml-1" style={{ opacity: 0.9 }}>
               {profile.city}
               {profile.city && distance ? ' • ' : ''}
               {distance}
@@ -66,7 +73,7 @@ export function ProfileCard({ profile }: ProfileCardProps) {
 
         {/* Bio */}
         {profile.bio && (
-          <Text style={styles.bio} numberOfLines={3}>
+          <Text className="text-sm text-white leading-6 mb-3" numberOfLines={3}>
             {profile.bio}
           </Text>
         )}
@@ -76,24 +83,34 @@ export function ProfileCard({ profile }: ProfileCardProps) {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            style={styles.interestsContainer}
-            contentContainerStyle={styles.interestsContent}
+            className="mb-3"
+            contentContainerStyle={{ gap: 8 }}
           >
             {profile.interests.slice(0, 5).map((interest, index) => (
-              <View key={index} style={styles.interestTag}>
-                <Text style={styles.interestText}>{interest}</Text>
+              <View
+                key={index}
+                className="px-3 py-1.5 rounded-full border"
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                  borderColor: 'rgba(255, 255, 255, 0.5)',
+                }}
+              >
+                <Text className="text-sm text-white font-semibold">{interest}</Text>
               </View>
             ))}
           </ScrollView>
         )}
 
         {/* Mutual Interests */}
-        {profile.mutualInterests && profile.mutualInterests.length > 0 && (
-          <View style={styles.mutualContainer}>
+        {(profile as any).mutualInterests && (profile as any).mutualInterests.length > 0 && (
+          <View
+            className="flex-row items-center self-start px-3 py-2 rounded-lg"
+            style={{ backgroundColor: 'rgba(255, 107, 157, 0.2)' }}
+          >
             <Ionicons name="heart" size={16} color="#FF6B9D" />
-            <Text style={styles.mutualText}>
-              {profile.mutualInterests.length} shared interest
-              {profile.mutualInterests.length > 1 ? 's' : ''}
+            <Text className="text-sm text-white font-semibold ml-1.5">
+              {(profile as any).mutualInterests.length} shared interest
+              {(profile as any).mutualInterests.length > 1 ? 's' : ''}
             </Text>
           </View>
         )}
@@ -101,11 +118,16 @@ export function ProfileCard({ profile }: ProfileCardProps) {
 
       {/* Photo indicator dots */}
       {profile.photos.length > 1 && (
-        <View style={styles.photoIndicators}>
+        <View className="absolute top-4 left-0 right-0 flex-row justify-center" style={{ gap: 6 }}>
           {profile.photos.map((_, index) => (
             <View
               key={index}
-              style={[styles.indicator, index === 0 && styles.indicatorActive]}
+              className="w-2 h-2 rounded-full"
+              style={{
+                backgroundColor: index === 0
+                  ? '#FFFFFF'
+                  : 'rgba(255, 255, 255, 0.4)',
+              }}
             />
           ))}
         </View>
@@ -128,126 +150,3 @@ function getGoalIcon(goal: string): string {
       return '💬';
   }
 }
-
-const styles = StyleSheet.create({
-  card: {
-    width: SCREEN_WIDTH - 40,
-    height: CARD_HEIGHT,
-    borderRadius: 20,
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    overflow: 'hidden',
-  },
-  photo: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-  },
-  gradient: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '50%',
-  },
-  content: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  name: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    flex: 1,
-  },
-  badge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  badgeText: {
-    fontSize: 20,
-  },
-  locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  location: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    marginLeft: 4,
-    opacity: 0.9,
-  },
-  bio: {
-    fontSize: 15,
-    color: '#FFFFFF',
-    lineHeight: 22,
-    marginBottom: 12,
-  },
-  interestsContainer: {
-    marginBottom: 12,
-  },
-  interestsContent: {
-    gap: 8,
-  },
-  interestTag: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
-  },
-  interestText: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  mutualContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 107, 157, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-  },
-  mutualText: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    fontWeight: '600',
-    marginLeft: 6,
-  },
-  photoIndicators: {
-    position: 'absolute',
-    top: 16,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  indicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
-  },
-  indicatorActive: {
-    backgroundColor: '#FFFFFF',
-  },
-});

@@ -7,6 +7,7 @@
 import { FastifyPluginAsync, FastifyError } from 'fastify';
 import fp from 'fastify-plugin';
 import { ZodError } from 'zod';
+import { AppError } from '../errors';
 
 const errorHandlerPlugin: FastifyPluginAsync = async (fastify) => {
   fastify.setErrorHandler((error: FastifyError, request, reply) => {
@@ -16,6 +17,17 @@ const errorHandlerPlugin: FastifyPluginAsync = async (fastify) => {
       url: request.url,
       method: request.method,
     }, 'Request error');
+
+    // Handle custom AppError instances
+    if (error instanceof AppError) {
+      return reply.code(error.statusCode).send({
+        success: false,
+        error: {
+          message: error.message,
+          code: error.code,
+        },
+      });
+    }
 
     // Handle Zod validation errors
     if (error instanceof ZodError) {

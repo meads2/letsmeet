@@ -5,7 +5,7 @@
  */
 
 import { useEffect } from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
+import { View, Animated } from 'react-native';
 
 interface SkeletonProps {
   width?: number | string;
@@ -38,8 +38,8 @@ export function Skeleton({ width = '100%', height = 20, borderRadius = 4, style 
   return (
     <Animated.View
       style={[
-        styles.skeleton,
         {
+          backgroundColor: '#e5e7eb',
           width,
           height,
           borderRadius,
@@ -53,9 +53,9 @@ export function Skeleton({ width = '100%', height = 20, borderRadius = 4, style 
 
 export function ProfileCardSkeleton() {
   return (
-    <View style={styles.profileCard}>
+    <View className="p-5">
       <Skeleton width="100%" height={400} borderRadius={20} />
-      <View style={styles.profileInfo}>
+      <View className="mt-4">
         <Skeleton width={200} height={32} borderRadius={8} />
         <Skeleton width={150} height={20} borderRadius={6} style={{ marginTop: 8 }} />
         <Skeleton width="100%" height={60} borderRadius={8} style={{ marginTop: 12 }} />
@@ -66,9 +66,9 @@ export function ProfileCardSkeleton() {
 
 export function MatchCardSkeleton() {
   return (
-    <View style={styles.matchCard}>
+    <View className="flex-row items-center bg-white p-4 rounded-xl mb-3">
       <Skeleton width={60} height={60} borderRadius={30} />
-      <View style={styles.matchInfo}>
+      <View className="flex-1 ml-4">
         <Skeleton width={120} height={20} borderRadius={6} />
         <Skeleton width={180} height={16} borderRadius={6} style={{ marginTop: 8 }} />
         <Skeleton width={80} height={14} borderRadius={6} style={{ marginTop: 4 }} />
@@ -79,8 +79,10 @@ export function MatchCardSkeleton() {
 
 export function MessageSkeleton({ isOwn = false }: { isOwn?: boolean }) {
   return (
-    <View style={[styles.messageSkeleton, isOwn && styles.ownMessage]}>
-      {!isOwn && <Skeleton width={32} height={32} borderRadius={16} style={{ marginRight: 8 }} />}
+    <View className={['flex-row my-2 px-3', isOwn ? 'justify-end' : ''].join(' ')}>
+      {!isOwn && (
+        <Skeleton width={32} height={32} borderRadius={16} style={{ marginRight: 8 }} />
+      )}
       <View>
         <Skeleton
           width={isOwn ? 180 : 200}
@@ -97,35 +99,3 @@ export function MessageSkeleton({ isOwn = false }: { isOwn?: boolean }) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  skeleton: {
-    backgroundColor: '#E0E0E0',
-  },
-  profileCard: {
-    padding: 20,
-  },
-  profileInfo: {
-    marginTop: 16,
-  },
-  matchCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  matchInfo: {
-    flex: 1,
-    marginLeft: 16,
-  },
-  messageSkeleton: {
-    flexDirection: 'row',
-    marginVertical: 8,
-    paddingHorizontal: 12,
-  },
-  ownMessage: {
-    justifyContent: 'flex-end',
-  },
-});

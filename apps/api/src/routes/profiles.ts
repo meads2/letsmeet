@@ -2,23 +2,17 @@
  * Profile Routes
  *
  * Endpoints for managing user dating profiles
+ * REFACTORED: Now uses ProfileService and validation middleware
  */
 
 import { FastifyPluginAsync } from 'fastify';
-import {
-  createProfileSchema,
-  updateProfileSchema,
-  type CreateProfileInput,
-  type UpdateProfileInput,
-} from '@letsmeet/shared';
-import {
-  getProfileByUserId,
-  createProfile,
-  updateProfile,
-  deleteProfile,
-} from '@letsmeet/database';
+import { validateBody } from '../middleware/validation';
+import { createProfileBodySchema, updateProfileBodySchema } from '../validators';
+import type { CreateProfileInput, UpdateProfileInput } from '@letsmeet/shared';
 
 const profilesRoute: FastifyPluginAsync = async (fastify) => {
+  const { profileService } = fastify.services;
+
   /**
    * GET /api/v1/profiles/me
    * Get current user's profile
@@ -28,17 +22,7 @@ const profilesRoute: FastifyPluginAsync = async (fastify) => {
   }, async (request, reply) => {
     const userId = request.userId!;
 
-    const profile = await getProfileByUserId(userId);
-
-    if (!profile) {
-      return reply.code(404).send({
-        success: false,
-        error: {
-          message: 'Profile not found',
-          code: 'PROFILE_NOT_FOUND',
-        },
-      });
-    }
+    const profile = await profileService.getProfileOrThrow(userId);
 
     return reply.send({
       success: true,
@@ -52,28 +36,12 @@ const profilesRoute: FastifyPluginAsync = async (fastify) => {
    */
   fastify.post('/', {
     onRequest: [fastify.authenticate],
+    preHandler: [validateBody(createProfileBodySchema)],
   }, async (request, reply) => {
     const userId = request.userId!;
+    const body = request.body as CreateProfileInput;
 
-    // Validate request body
-    const validated = createProfileSchema.parse({
-      ...(request.body as object),
-      userId, // Override with authenticated user ID
-    });
-
-    // Check if profile already exists
-    const existingProfile = await getProfileByUserId(userId);
-    if (existingProfile) {
-      return reply.code(400).send({
-        success: false,
-        error: {
-          message: 'Profile already exists',
-          code: 'PROFILE_EXISTS',
-        },
-      });
-    }
-
-    const profile = await createProfile(validated as CreateProfileInput);
+    const profile = await profileService.createUserProfile(userId, body);
 
     return reply.code(201).send({
       success: true,
@@ -87,13 +55,12 @@ const profilesRoute: FastifyPluginAsync = async (fastify) => {
    */
   fastify.patch('/me', {
     onRequest: [fastify.authenticate],
+    preHandler: [validateBody(updateProfileBodySchema)],
   }, async (request, reply) => {
     const userId = request.userId!;
+    const body = request.body as UpdateProfileInput;
 
-    // Validate request body
-    const validated = updateProfileSchema.parse(request.body);
-
-    const profile = await updateProfile(userId, validated as UpdateProfileInput);
+    const profile = await profileService.updateUserProfile(userId, body);
 
     return reply.send({
       success: true,
@@ -110,7 +77,7 @@ const profilesRoute: FastifyPluginAsync = async (fastify) => {
   }, async (request, reply) => {
     const userId = request.userId!;
 
-    await deleteProfile(userId);
+    await profileService.deleteUserProfile(userId);
 
     return reply.send({
       success: true,

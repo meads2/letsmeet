@@ -10,6 +10,8 @@
  *                 └── App Navigation
  */
 
+import '../global.css';
+
 import { ClerkLoaded, ClerkProvider, useAuth, useUser } from '@clerk/clerk-expo';
 import { StatsigProviderExpo } from '@statsig/expo-bindings';
 import { StripeProvider } from '@stripe/stripe-react-native';
@@ -18,6 +20,8 @@ import { Stack } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { ActivityIndicator, View } from 'react-native';
 import { ErrorBoundary } from '../components/common/error-boundary';
+import { ProfileGuard } from '../components/common/profile-guard';
+import { useApiClient } from '../lib/api-client';
 
 // Clerk token cache
 const tokenCache = {
@@ -52,6 +56,13 @@ const queryClient = new QueryClient({
 const clerkPublishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 const stripePublishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!;
 const statsigClientKey = process.env.EXPO_PUBLIC_STATSIG_CLIENT_KEY!;
+
+// API Client wrapper to initialize with Clerk token
+function ApiClientWrapper({ children }: { children: React.ReactNode }) {
+  // Initialize API client with Clerk token
+  useApiClient();
+  return <>{children}</>;
+}
 
 // Statsig wrapper to ensure user context from Clerk
 function StatsigWrapper({ children }: { children: React.ReactNode }) {
@@ -93,19 +104,22 @@ export default function RootLayout() {
     <ErrorBoundary>
       <ClerkProvider publishableKey={clerkPublishableKey} tokenCache={tokenCache}>
         <ClerkLoaded>
-          <StatsigWrapper>
-            <StripeProvider publishableKey={stripePublishableKey}>
-              <QueryClientProvider client={queryClient}>
-                <Stack screenOptions={{ headerShown: false }}>
-                  <Stack.Screen name="index" />
-                  <Stack.Screen name="sign-in" />
-                  <Stack.Screen name="sign-up" />
-                  <Stack.Screen name="onboarding" />
-                  <Stack.Screen name="(tabs)" />
-                </Stack>
-              </QueryClientProvider>
-            </StripeProvider>
-          </StatsigWrapper>
+          <ApiClientWrapper>
+            <StatsigWrapper>
+              <StripeProvider publishableKey={stripePublishableKey}>
+                <QueryClientProvider client={queryClient}>
+                  <ProfileGuard>
+                    <Stack screenOptions={{ headerShown: false }}>
+                      <Stack.Screen name="index" />
+                      <Stack.Screen name="(auth)" />
+                      <Stack.Screen name="(home)" />
+                      <Stack.Screen name="onboarding" />
+                    </Stack>
+                  </ProfileGuard>
+                </QueryClientProvider>
+              </StripeProvider>
+            </StatsigWrapper>
+          </ApiClientWrapper>
         </ClerkLoaded>
       </ClerkProvider>
     </ErrorBoundary>
